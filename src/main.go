@@ -66,30 +66,45 @@ func main() {
 	defer ui.Close()
 
 	go GetImageData()
+	go GetImageStatsFile()
 
 	images := ReadInfoFile()
-	_, err := GetImageStats()
+	stats, err := GetImageStats()
 	if err != nil {
 		log.Fatalf("Failed to worky: %v", err)
 	}
 
-	p := widgets.NewParagraph()
+	cpuUsage := GetCpuValues(stats)
+	memUsage := GetMemVals(stats)
+
 	l := widgets.NewList()
 
-	l.Title = "Images"
+	sl := widgets.NewSparkline()
+	sl.Data = cpuUsage
+	sl.Title = "Cpu Usage"
+	sl.LineColor = ui.ColorGreen
+
+	sl1 := widgets.NewSparkline()
+	sl1.Title = "Memory Usage"
+	sl1.Data = memUsage
+	sl1.LineColor = ui.ColorCyan
+
+	slg := widgets.NewSparklineGroup(sl, sl1)
+	slg.Title = "Usages"
+	slg.SetRect(0, 0, 50, 10)
+
+	l.Title = "Images View"
 	l.Rows = ConvertImagesToStringArr(images)
 	l.TextStyle = ui.NewStyle(ui.ColorYellow)
 	l.WrapText = false
-	l.SetRect(0, 0, 60, 20)
+	l.SetRect(0, 10, 50, 20)
 
-	p.Text = "Hello World!"
-	p.SetRect(10, 20, 25, 5)
-
-	ui.Render(p, l)
+	ui.Render(l, slg)
 
 	for e := range ui.PollEvents() {
-		if e.Type == ui.KeyboardEvent {
-			break
+		switch e.ID {
+		case "q", "<C-c>":
+			return
 		}
 	}
 }
