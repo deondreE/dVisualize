@@ -68,6 +68,11 @@ func main() {
 	go GetImageData()
 
 	images := ReadInfoFile()
+	_, err := GetImageStats()
+	if err != nil {
+		log.Fatalf("Failed to worky: %v", err)
+	}
+
 	p := widgets.NewParagraph()
 	l := widgets.NewList()
 

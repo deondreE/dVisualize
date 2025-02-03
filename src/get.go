@@ -4,13 +4,20 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"runtime"
 	"time"
 )
 
 func GetImageData() {
-	// runs the ../scripts/image_info.sh every 10minutes
+	var script string
+	if runtime.GOOS == "windows" {
+		script = ".\\scripts\\windows\\image_info.bat"
+	} else {
+		script = "./scripts/image_info.sh"
+	}
+
 	for {
-		cmd := exec.Command("../scripts/image_info.sh")
+		cmd := exec.Command(script)
 		err := cmd.Run()
 		if err != nil {
 			log.Printf("Error executing script: %v", err)

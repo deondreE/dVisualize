@@ -14,7 +14,7 @@ type Stats struct {
 	MP   string // Memory Usage / Limit
 }
 
-func ReturnStats() ([]Stats, error) {
+func GetImageStats() ([]Stats, error) {
 	var statsA []Stats
 
 	file, err := os.Open("image_stats.txt")
@@ -37,6 +37,7 @@ func ReturnStats() ([]Stats, error) {
 				MP:   fields[3],
 			}
 			statsA = append(statsA, stats)
+			fmt.Printf("CPU: %v, MP: %v", stats.CPU, stats.MP)
 		}
 	}
 
