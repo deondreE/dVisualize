@@ -112,7 +112,7 @@ func main() {
 	l2.Title = "Container View"
 	l2.Rows = containers
 	l2.TextStyle = ui.NewStyle(ui.ColorBlue)
-	l2.WrapText = false
+	l2.WrapText = true
 	l2.SetRect(51, 10, 101, 20)
 
 	ui.Render(l, l2, slg)
