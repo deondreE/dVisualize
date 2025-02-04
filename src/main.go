@@ -59,6 +59,15 @@ func ConvertImagesToStringArr(images []Image) []string {
 	return result
 }
 
+func ConvertConToStringArr(containers []Container) []string {
+	var result []string
+	for _, con := range containers {
+		result = append(result, fmt.Sprintf("ID: %s, Name: %s, Ports: %s, Status: %s", con.ID, con.Name, con.PORTS, con.STATUS))
+	}
+
+	return result
+}
+
 func main() {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("Failed to initialize termui: %v", err)
@@ -66,18 +75,21 @@ func main() {
 	defer ui.Close()
 
 	go GetImageData()
-	go GetImageStatsFile()
+	go GetContainerInfo()
 
 	images := ReadInfoFile()
-	stats, err := GetImageStats()
+	conA := GetConInfo()
+	stats, err := GetImageStatsFile()
+	fmt.Print(stats)
 	if err != nil {
-		log.Fatalf("Failed to worky: %v", err)
+		return
 	}
-
+	containers := ConvertConToStringArr(conA)
 	cpuUsage := GetCpuValues(stats)
 	memUsage := GetMemVals(stats)
 
 	l := widgets.NewList()
+	l2 := widgets.NewList()
 
 	sl := widgets.NewSparkline()
 	sl.Data = cpuUsage
@@ -99,7 +111,13 @@ func main() {
 	l.WrapText = false
 	l.SetRect(0, 10, 50, 20)
 
-	ui.Render(l, slg)
+	l2.Title = "Container View"
+	l2.Rows = containers
+	l2.TextStyle = ui.NewStyle(ui.ColorBlue)
+	l2.WrapText = false
+	l2.SetRect(51, 10, 101, 20)
+
+	ui.Render(l, l2, slg)
 
 	for e := range ui.PollEvents() {
 		switch e.ID {
