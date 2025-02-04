@@ -16,8 +16,6 @@ type Image struct {
 	id   string
 }
 
-// TODO: Memory usage per container.
-// TODO: CPU Usage per container.
 // TODO: Delete;
 // TODO: Create; ~MAYBE~
 func ReadInfoFile() []Image {
@@ -123,6 +121,11 @@ func main() {
 		switch e.ID {
 		case "q", "<C-c>":
 			return
+		}
+
+		switch e.Type {
+		case ui.KeyboardEvent:
+			continue
 		}
 	}
 }
