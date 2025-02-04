@@ -2,3 +2,5 @@
 *.exe
 
 main
+*.tar.gz
+*.zip
