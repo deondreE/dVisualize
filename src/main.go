@@ -78,7 +78,7 @@ func main() {
 	images := ReadInfoFile()
 	conA := GetConInfo()
 	stats, err := GetImageStatsFile()
-	fmt.Print(stats)
+	//	fmt.Print(stats)
 	if err != nil {
 		return
 	}
