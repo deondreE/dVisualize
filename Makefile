@@ -1,5 +1,5 @@
 build:
-	go build -o main src
+	go build -o main src/*.go
 
 package-maclinux:
 	go build src/*.go -o main
