@@ -6,6 +6,5 @@ A docker visualize tool for people like me that don't install docker desktop.
 
 ### Todo
 
-* Cpu Usage Graph
-* Memory usage Graph
+* Stop containers
 * Delete Images

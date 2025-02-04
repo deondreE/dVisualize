@@ -49,7 +49,7 @@ func GetContainerInfo() {
 	if runtime.GOOS == "windows" {
 		script = ".\\scripts\\windows\\container_info.bat"
 	} else {
-		script = "./scripts/container_info.sh"
+		script = ".//scripts//container_info.sh"
 	}
 
 	for {
