@@ -72,6 +72,7 @@ func main() {
 
 	ui.Render(l, l2)
 
+	// TODO: Selection based rendering for the cpu,mem usage inside of tabs.
 	for e := range ui.PollEvents() {
 		switch e.ID {
 		case "q", "<C-c>":
