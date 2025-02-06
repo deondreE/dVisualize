@@ -1,66 +1,32 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
+	"context"
 	"log"
-	"os"
-	"strings"
 
+	"github.com/docker/docker/api/types"
+	containertypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/client"
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 )
 
-type Image struct {
-	repo string
-	id   string
-}
-
-// TODO: Delete;
-// TODO: Create; ~MAYBE~
-func ReadInfoFile() []Image {
-	var rValue []Image
-	f, err := os.Open("image_info.txt")
-	if err != nil {
-		log.Fatalf("Erorr opening file %v", err)
-		return nil
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		fields := strings.Fields(line)
-		if len(fields) >= 3 {
-			repository := fields[0]
-			imageID := fields[2]
-			rValue = append(rValue, Image{repo: repository, id: imageID})
-			//	fmt.Printf("Reposiory: %s, Image ID: %s\n", repository, imageID)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading file:", err)
-	}
-
-	return rValue
-}
-
-func ConvertImagesToStringArr(images []Image) []string {
+func returnImageArray(images []image.Summary) []string {
 	var result []string
-	for _, img := range images {
-		result = append(result, fmt.Sprintf("Repository: %s, Image ID: %s", img.repo, img.id))
+
+	for _, image := range images {
+		result = append(result, image.ID)
 	}
 
 	return result
 }
 
-func ConvertConToStringArr(containers []Container) []string {
+func returnContainerArray(containers []types.Container) []string {
 	var result []string
-	for _, con := range containers {
-		result = append(result, fmt.Sprintf("ID: %s, Name: %s, Ports: %s, Status: %s", con.ID, con.Name, con.PORTS, con.STATUS))
+
+	for _, container := range containers {
+		result = append(result, container.ID)
 	}
 
 	return result
@@ -72,50 +38,39 @@ func main() {
 	}
 	defer ui.Close()
 
-	go GetImageData()
-	go GetContainerInfo()
-
-	images := ReadInfoFile()
-	conA := GetConInfo()
-	stats, err := GetImageStatsFile()
-	//	fmt.Print(stats)
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		return
+		log.Fatalf("Docker daemon is likely not runing: %v", err)
 	}
-	containers := ConvertConToStringArr(conA)
-	cpuUsage := GetCpuValues(stats)
-	memUsage := GetMemVals(stats)
+	defer cli.Close()
+
+	containers, err := cli.ContainerList(ctx, containertypes.ListOptions{})
+	if err != nil {
+		log.Fatalf("Docker daemon is likely not runing: %v", err)
+	}
 
 	l := widgets.NewList()
 	l2 := widgets.NewList()
 
-	sl := widgets.NewSparkline()
-	sl.Data = cpuUsage
-	sl.Title = "Cpu Usage"
-	sl.LineColor = ui.ColorGreen
+	images, err := cli.ImageList(ctx, image.ListOptions{})
+	if err != nil {
+		log.Fatalf("Docker daemon is likely not runing: %v", err)
+	}
 
-	sl1 := widgets.NewSparkline()
-	sl1.Title = "Memory Usage"
-	sl1.Data = memUsage
-	sl1.LineColor = ui.ColorCyan
-
-	slg := widgets.NewSparklineGroup(sl, sl1)
-	slg.Title = "Usages"
-	slg.SetRect(0, 0, 50, 10)
-
-	l.Title = "Images View"
-	l.Rows = ConvertImagesToStringArr(images)
+	l.Title = "Current Images"
+	l.Rows = returnImageArray(images)
 	l.TextStyle = ui.NewStyle(ui.ColorYellow)
 	l.WrapText = false
 	l.SetRect(0, 10, 50, 20)
 
-	l2.Title = "Container View"
-	l2.Rows = containers
-	l2.TextStyle = ui.NewStyle(ui.ColorBlue)
-	l2.WrapText = true
+	l2.Title = "Containers"
+	l2.Rows = returnContainerArray(containers)
+	l.TextStyle = ui.NewStyle(ui.ColorCyan)
+	l.WrapText = true
 	l2.SetRect(51, 10, 101, 20)
 
-	ui.Render(l, l2, slg)
+	ui.Render(l, l2)
 
 	for e := range ui.PollEvents() {
 		switch e.ID {
